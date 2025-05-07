@@ -1,124 +1,320 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+// Manually-defined Firebase config
+const firebaseConfig = {
+  'apiKey': "AIzaSyAL7veSxCJ2qCiovx5BpoJep7KCXwOEhqM",
+  'authDomain': "campus-events-9b03a.firebaseapp.com",
+  'projectId': "campus-events-9b03a",
+  'storageBucket': "campus-events-9b03a.firebasestorage.app",
+  'messagingSenderId': "333380838618",
+  'appId': "1:333380838618:web:1fc34cd2e7dd8b6d86b1e3",
+  'measurementId': "G-0J0CJVQP7W"
+};
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: FirebaseOptions(
+      apiKey: firebaseConfig['apiKey']!,
+      authDomain: firebaseConfig['authDomain']!,
+      projectId: firebaseConfig['projectId']!,
+      storageBucket: firebaseConfig['storageBucket']!,
+      messagingSenderId: firebaseConfig['messagingSenderId']!,
+      appId: firebaseConfig['appId']!,
+      measurementId: firebaseConfig['measurementId']!,
+    ),
+  );
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your appliwddcation.
-
-//   Can i have a please burge with a side of guys
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Flutter Firebase Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: SignInPage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class SignInPage extends StatefulWidget {
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _SignInPageState createState() => _SignInPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _SignInPageState extends State<SignInPage> {
+  bool isLogin = true;
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
-  void _incrementCounter() {
+  void toggleForm() {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      isLogin = !isLogin;
+    });
+  }
+
+  void handleAuth() {
+    final username = _emailController.text;
+    final password = _passwordController.text;
+
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please enter username and password")),
+      );
+      return;
+    }
+
+    if (isLogin) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => TravelPage(username: username)),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Signup Successful")),
+      );
+    }
+
+    _emailController.clear();
+    _passwordController.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(isLogin ? "Login" : "Signup"),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset("assets/images/handglobe.jpg", height: 300),
+            SizedBox(height: 20),
+            TextField(
+              controller: _emailController,
+              decoration: InputDecoration(labelText: "Username"),
+            ),
+            SizedBox(height: 10),
+            TextField(
+              controller: _passwordController,
+              obscureText: true,
+              decoration: InputDecoration(labelText: "Password"),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: handleAuth,
+              child: Text(isLogin ? "Login" : "Signup"),
+            ),
+            TextButton(
+              onPressed: toggleForm,
+              child: Text(isLogin
+                  ? "Don't have an account? Signup"
+                  : "Already have an account? Login"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class TravelPage extends StatefulWidget {
+  final String username;
+  final String profileImage = "assets/images/profile.jpg";
+
+  const TravelPage({super.key, required this.username});
+
+  @override
+  _TravelPageState createState() => _TravelPageState();
+}
+
+class _TravelPageState extends State<TravelPage> {
+  List<Map<String, String>> travelDestinations = [
+    {
+      'imagePath': "assets/images/tokyocity.jpg",
+      'title': "Tokyo, Japan",
+      'description': "A vibrant city blending tradition with futuristic vibes.",
+      'price': "1000",
+      'reviews': "4.5 stars from 1200 reviews",
+      'location': "Tokyo, Japan",
+      'travelTime': "12 hours",
+    },
+    {
+      'imagePath': "assets/images/francetower.jpg",
+      'title': "Paris, France",
+      'description': "City of Light, Eiffel Tower, museums and pastries.",
+      'price': "900",
+      'reviews': "4.7 stars from 1500 reviews",
+      'location': "Paris, France",
+      'travelTime': "8 hours",
+    },
+    {
+      'imagePath': "assets/images/italcol.jpg",
+      'title': "Italy",
+      'description': "Historic monuments, beautiful countryside, and Italian cuisine.",
+      'price': "1200",
+      'reviews': "4.6 stars from 800 reviews",
+      'location': "Rome, Italy",
+      'travelTime': "10 hours",
+    },
+  ];
+
+  List<Map<String, String>> filteredDestinations = [];
+  TextEditingController searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    filteredDestinations = List.from(travelDestinations);
+    searchController.addListener(_filterDestinations);
+  }
+
+  @override
+  void dispose() {
+    searchController.removeListener(_filterDestinations);
+    searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterDestinations() {
+    final query = searchController.text.toLowerCase();
+
+    setState(() {
+      filteredDestinations = travelDestinations
+          .where((destination) =>
+              destination['title']!.toLowerCase().contains(query))
+          .toList();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+        title: Row(
+          children: [
+            ClipOval(
+              child: Image.asset(
+                widget.profileImage,
+                height: 40,
+                width: 40,
+                fit: BoxFit.cover,
+              ),
             ),
+            SizedBox(width: 10),
+            Text("Hello, " + widget.username),
+          ],
+        ),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  ClipOval(
+                    child: Image.asset(
+                      widget.profileImage,
+                      height: 50,
+                      width: 50,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    "Hello, " + widget.username,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                controller: searchController,
+                decoration: InputDecoration(
+                  labelText: "Search destinations",
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.search),
+                ),
+              ),
+            ),
+            ...filteredDestinations.map((destination) {
+              return travelCard(
+                context,
+                imagePath: destination['imagePath']!,
+                title: destination['title']!,
+                description: destination['description']!,
+                price: double.parse(destination['price']!),
+                reviews: destination['reviews']!,
+                location: destination['location']!,
+                travelTime: destination['travelTime']!,
+              );
+            }).toList(),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+
+  Widget travelCard(
+    BuildContext context, {
+    required String imagePath,
+    required String title,
+    required String description,
+    required double price,
+    required String reviews,
+    required String location,
+    required String travelTime,
+  }) {
+    return Card(
+      margin: EdgeInsets.symmetric(vertical: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 5,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            child: Image.asset(
+              imagePath,
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                SizedBox(height: 4),
+                Text(description),
+                SizedBox(height: 8),
+                Text("From \$$price • $reviews"),
+                Text("Location: $location • Travel Time: $travelTime"),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
